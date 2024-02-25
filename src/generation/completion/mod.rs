@@ -1,3 +1,5 @@
+use std::{f32::INFINITY, time::Duration};
+
 use serde::{Deserialize, Serialize};
 
 use crate::Ollama;
@@ -59,7 +61,11 @@ impl Ollama {
 
     /// Completion generation with a single response.
     /// Returns a single `GenerationResponse` object
-    pub async fn generate(&self, request: GenerationRequest) -> Result<GenerationResponse, String> {
+    pub async fn generate(
+        &self,
+        request: GenerationRequest,
+        timeout: Option<u64>,
+    ) -> Result<GenerationResponse, String> {
         let mut request = request;
         request.stream = false;
 
@@ -69,6 +75,7 @@ impl Ollama {
             .reqwest_client
             .post(uri)
             .body(serialized)
+            .timeout(Duration::from_secs(timeout.unwrap_or_default()))
             .send()
             .await
             .map_err(|e| e.to_string())?;
